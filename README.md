@@ -1,53 +1,21 @@
 # git-hub-2
-Ushbu qo'llanmada Git-da versiyalash (tagging), GitHub platformasida relizlar yaratish hamda GitHub Actions yordamida toliq CI/CD jarayonini (testlash, matrisa, deploy, secrets va cron) sozlash bo'yicha amaliy misollar jamlangan.
+Loyiha talablaridan kelib chiqib, Capstone loyihangizni mukammal darajada yakunlash va uni topshirishga tayyorlash uchun barcha qadamlar va hisobot shablonlari jamlangan yakuniy qo'llanma.1. Repo va Dokumentatsiya (Repository Setup)Repozitoriyangiz professional ko'rinishi uchun quyidagi tuzilmaga ega bo'lishi kerak:Plaintext├── .github/
+│   ├── ISSUE_TEMPLATE/
+│   │   ├── bug_report.md
+│   │   └── feature_request.md
+│   └── PULL_REQUEST_TEMPLATE.md
+├── .gitignore
+├── LICENSE
+├── README.md
+├── CONTRIBUTING.md
+└── [Sizning loyiha kodlaringiz]
+📄 README.md uchun status badge va live demo qismi:Markdown# Loyiha Nomi 🚀
+[![Run Tests](https://github.com/USER_NAME/REPO_NAME/actions/workflows/test.yml/badge.svg)](https://github.com/USER_NAME/REPO_NAME/actions)
 
-1. 2 ta tag (Lightweight va Annotated)
-Git-da tag'lar loyihaning ma'lum bir nuqtasini (odatda relizlarni) belgilab qo'yish uchun ishlatiladi.
+Loyiha haqida qisqacha ma'lumot (1-2 gap).
 
-Lightweight (Yengil) tag: Bu shunchaki ma'lum bir commit'ga ishora qiluvchi ko'rsatkich. Hech qanday qo'shimcha ma'lumot saqlamaydi.
-
-Bash
-git tag v1.0.0-lw
-Annotated (Izohli) tag: Git bazasida to'liq obyekt sifatida saqlanadi. O'z ichiga muallif ismi, email, sana va maxsus xabarni oladi. Relizlar uchun doim shu tur tavsiya etiladi.
-
-Bash
-git tag -a v1.0.0 -m "Birinchi rasmiy barqaror reliz"
-2. Tag'larni push qilish (--tags)
-Lokal kompyuterda yaratilgan tag'lar oddiy git push buyrug'i bilan serverga (remote) yuborilmaydi. Ularni quyidagicha alohida jo'natish kerak:
-
-Bash
-# Faqatgina bitta aniq tag'ni push qilish
-git push origin v1.0.0
-
-# Lokaldagi barcha yangi tag'larni bir vaqtda push qilish
-git push origin --tags
-3. GitHub Release sahifa changelog bilan
-Tag serverga push qilingandan so'ng, GitHub-da uni to'liq Release holatiga keltirish mumkin:
-
-GitHub repozitoriyangizga kiring va Releases bo'limiga o'ting.
-
-Draft a new release tugmasini bosing.
-
-Push qilingan tag'ni tanlang (masalan, v1.0.0).
-
-Generate release notes tugmasini bossangiz, GitHub avtomatik ravishda oxirgi relizdan beri qilingan barcha Pull Request'lar va commit'lardan Changelog (o'zgarishlar ro'yxati) tuzib beradi.
-
-Publish release tugmasini bosing.
-
-4. gh release create CLI bilan
-GitHub veb-interfeysiga kirmasdan, to'g'ridan-to'g'ri terminal orqali reliz yaratish uchun GitHub CLI (gh) dasturidan foydalanamiz:
-
-Bash
-gh release create v1.0.0 --title "Reliz v1.0.0" --notes "Bu relizda yangi API logikasi va xavfsizlik tuzatishlari qo'shildi."
-Bu buyruq avtomat ravishda tegishli tag'ni oladi va GitHub Release sahifasini shakllantiradi.
-
-5. .github/workflows/test.yml (Push/PR'da test + Matrix)
-Ushbu workflow har safar kod main branch'ga push qilinganda yoki Pull Request ochilganda ishga tushadi. Matrix builds yordamida testlar bir vaqtning o'zida Node.js'ning 2 ta versiyasida parallel tekshiriladi.
-
-Fayl yo'li: .github/workflows/test.yml
-
-YAML
-name: Run Tests
+🔗 **Live Demo:** [https://loyiha-nomi.vercel.app](https://loyiha-nomi.vercel.app)
+2. Issue va Project ManagementGitHub interfeysida quyidagilarni sozlang:Labels: Issue'larga rangli teglar bering (bug, feature, documentation, ci/cd).Milestone: v1.0.0 nomli milestone yarating va unga barcha 10+ issue'larni biriktiring (Deadline belgilash esdan chiqmasin).Project Board: GitHub Projects qismida Automated Kanban (Todo, In Progress, Review, Done) tizmida ishni tashkil qiling.Assignees: Har bir issue jamoaning ma'lum bir a'zosiga biriktirilgan bo'lishi shart.3. Branching, PR va Code Review🟢 Branch Protection Rules:Settings -> Branches -> Add branch protection rule qismiga kiring:Branch name pattern: mainRequire a pull request before merging $\rightarrow$ YoqishRequire status checks to pass before merging $\rightarrow$ Yoqish (Actions testlari o'tishi shart bo'lishi uchun).✍️ Conventional Commits Standarti:Commit xabarlarini quyidagi formatda yozing:feat(auth): login tizimi qo'shildifix(api): ulanish xatoligi to'g'rilandidocs(readme): status badge qo'shildi🔗 Issue bog'lash:PR ochganda uning tavsifiga (Description) quyidagilardan birini yozing:This PR closes #12 (Bu merge bo'lganda 12-sonli issue avtomat yopiladi).4. CI/CD KonfiguratsiyasiLint, build va testlarni tekshirish uchun .github/workflows/test.yml fayli namunasi (Node.js misolida):YAMLname: CI Quality Check
 
 on:
   push:
@@ -56,113 +24,47 @@ on:
     branches: [ main ]
 
 jobs:
-  test-matrix:
+  quality-check:
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        node-version: [18.x, 20.x] # Kamida 2 ta versiya
-
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-
-      - name: Set up Node.js
-        uses: actions/setup-node@v4
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
         with:
-          node-version: ${{ matrix.node-version }}
+          node-version: 20
 
       - name: Install dependencies
         run: npm ci
 
-      - name: Run unit tests
+      - name: Run Linter
+        run: npm run lint # yoki tegishli lint buyrug'i
+
+      - name: Run Build
+        run: npm run build
+
+      - name: Run Tests
         run: npm test
-6. .github/workflows/deploy.yml (Main'ga merge'da deploy + Secrets)
-Ushbu workflow faqatgina kod muvaffaqiyatli tekshirilib, main branch'iga birlashganda (merge) ishga tushadi va maxfiy kalit yordamida deploy jarayonini simulyatsiya qiladi.
+5. Yakuniy Topshirish: Retrospective Hisobot ShablonLoyihani topshirishda o'qituvchi yoki baholovchilarga taqdim etiladigan Retrospective Report hujjati formati:Markdown# PROJECT RETROSPECTIVE REPORT (V1.0.0)
 
-Fayl yo'li: .github/workflows/deploy.yml
+## 1. Umumiy Ma'lumotlar
+* **GitHub Repository:** [LINK]
+* **Live Demo URL:** [LINK]
+* **Release Link:** [LINK]
 
-YAML
-name: Deploy Production
+## 2. Jamoa va Hissa (Contributions)
+* **Dasturchi 1 (Team Lead):** [Ism] — [Vazifasi: masalan, CI/CD va Auth] — Commitlar soni: X
+* **Dasturchi 2:** [Ism] — [Vazifasi: Frontend logikasi] — Commitlar soni: Y
+* **Dasturchi 3:** [Ism] — [Vazifasi: API va Database] — Commitlar soni: Z
+*(GitHub Insights grafiklariga ko'ra balans saqlangan).*
 
-on:
-  push:
-    branches: [ main ]
+## 3. Git Konfliktlari va Ularning Yechimi
+* **Konflikt senariysi:** `feature/auth` va `feature/api` branchlari birlashtirilayotganda `server.js` faylida konflikt yuzaga keldi.
+* **Qanday hal qilindi:** Jamoa bilan birgalikda lokal kompyuterda `git rebase main` qilindi, har ikki tomonning kodi saqlangan holda konflikt bloklari tozalandi va `git rebase --continue` orqali muvaffaqiyatli hal qilindi.
 
-jobs:
-  deploy:
-    runs-on: ubuntu-latest
+## 4. Nimalarni o'rgandik? (Lessons Learned)
+1. Pull Request ochishdan oldin local branch'ni doim `main`ga rebase qilish merge konfliktlarni ancha kamaytirishini bildik.
+2. `git push --force-with-lease` kaliti jamoadoshlarimiz kodi serverda o'chib ketishidan qanchalik muhim himoya ekanini amalda ko'rdik.
+3. GitHub Actions workflow sintaksisidagi mayda indentatsiya (space) xatolari poyplaynni buzishini va YAML linter ishlatish kerakligini tushundik.
 
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-
-      - name: Deploying to server
-        env:
-          # GitHub Settings -> Secrets qismida sozlangan maxfiy kalit
-          DEPLOY_API_KEY: ${{ secrets.PRODUCTION_API_KEY }} 
-        run: |
-          echo "Deploy jarayoni boshlandi..."
-          curl -H "Authorization: Bearer $DEPLOY_API_KEY" https://api.myserver.com/deploy
-          echo "Deploy muvaffaqiyatli yakunlandi!"
-7. Secrets sozlash
-Kod ichida parollar yoki API kalitlarni ochiq yozish xavfli bo'lgani uchun GitHub Secrets ishlatiladi:
-
-GitHub repozitoriyangizda Settings menyusiga kiring.
-
-Chap menyudan Secrets and variables → Actions qismini tanlang.
-
-New repository secret tugmasini bosing.
-
-Name: PRODUCTION_API_KEY
-
-Secret: Sizning maxfiy API kalitingiz
-
-Add secret tugmasini bosing.
-
-8. README'da Status Badge
-Workflow muvaffaqiyatli ishlayotganini loyihaning bosh sahifasida ko'rsatish uchun README.md faylining eng yuqori qismiga quyidagi kod joylashtiriladi:
-
-Markdown
-![Test Status](https://github.com/USER_NAME/REPO_NAME/actions/workflows/test.yml/badge.svg)
-GitHub ushbu havola o'rniga avtomatik ravishda passing yoki failing degan dinamik grafik nishonni chiqarib beradi.
-
-9. Scheduled workflow misoli (cron)
-Workflow'ni ma'lum bir vaqtda (masalan, har kecha soat 00:00 da) avtomatik ishga tushirish uchun cron ishlatiladi:
-
-YAML
-name: Nightly Backup
-
-on:
-  schedule:
-    # Har kuni soat 00:00 da (UTC vaqti bilan) avtomat ishga tushadi
-    - cron: '0 0 * * *'
-
-jobs:
-  backup:
-    runs-on: ubuntu-latest
-    steps:
-      - run: echo "Tizim to'liq zaxira (backup) qilinmoqda..."
-10. YAML indentatsiya xato tahlili (2 vs 4 bo'shliq)
-YAML formatida qat'iy qoida bor: Tab belgisini ishlatish mutlaqo taqiqlanadi, faqat bo'shliq (space) ishlatilishi shart. Ko'pchilik dasturchilar loyihada 2 ta yoki 4 ta joy tashlash (indentation) borasida xatoga yo'l qo'yishadi.
-
-Muammo tahlili:
-YAML sintaksisi daraxtsimon tuzilishga ega. Agar siz bitta fayl ichida adashib bir joyda 2 ta, boshqa joyda 4 ta bo'shluq ishlatsangiz, iyerarxiya buziladi:
-
-YAML
-# XATO VARIANT:
-jobs:
-  test:
-    runs-on: ubuntu-latest
-      steps: # XATO: steps bloki runs-on bilan bir xil sathda yoki aniq iyerarxiyada bo'lishi kerak.
-      - uses: actions/checkout@v4
-To'g'ri yechim:
-Butun fayl davomida bir xil standartni tanlang (GitHub Actions uchun 2 ta bo'shliq standarti tavsiya etiladi).
-
-YAML
-# TO'G'RI VARIANT:
-jobs:
-  test:
-    runs-on: ubuntu-latest
-    steps: # Har bir iyerarxiya aniq 2 tadan bo'shliq bilan surilgan
-      - uses: actions/checkout@v4
-Maslahat: Bunday sintaktik xatolarni terminalga yuborishdan oldin aniqlash uchun kod muharriringizga (masalan, VS Code) YAML lint plaginini o'rnatib olishingiz tavsiya etiladi.
+## 5. Kelajakdagi rejalar (Next Steps)
+* v1.1.0 talqinida avtomatik Docker image build qilish va unit testlar qamrovini (coverage) 90% ga yetkazish.
+Ushbu shablon va ko'rsatmalar asosida loyihangizni 100% talablarga mos holatda yakunlashingiz mumkin. Kursni va Capstone loyihasini muvaffaqiyatli topshirishingizga tilakdoshman! Yangi ochilgan repozitoriyangiz yoki poyplaynlar bo'yicha yana biron bir texnik savol bormi?
